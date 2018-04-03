@@ -12,6 +12,7 @@ import com.google.gson.JsonSyntaxException;
 import com.mobicash.utils.Minput;
 import com.mobicash.utils.MyTypeAdapter;
 import com.mobicash.utils.Mreply;
+import com.mobicash.utils.Pj;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.rmi.RemoteException;
@@ -117,10 +118,10 @@ public class AirtimeResource {
                                
                             
                             }else{
-                                System.out.println("+++++++++ERROR "+fetchProductOut.getErrorcode()+" "+fetchProductOut.getMessage());
+                                log.info("+++++++++ERROR "+fetchProductOut.getErrorcode()+" "+fetchProductOut.getMessage());
                                 reply.setError("+++++++ERROR "+fetchProductOut.getErrorcode()+" "+fetchProductOut.getMessage());
                             }
-              
+            
           
                    
        }catch(JsonSyntaxException | SOAPFaultException e){
@@ -157,11 +158,13 @@ public class AirtimeResource {
                 if(minput.amount >= 1.0 && minput.phoneNumber.length()!=0 && minput.pin.length()!=0){
            
                     //create cyclos webservice
-                   /* CyclosWebServicesClientFactory factory = new CyclosWebServicesClientFactory();
-                    factory.setServerRootUrl("http://test.mobicash.co.za/south_africa/");
+                    CyclosWebServicesClientFactory factory = new CyclosWebServicesClientFactory();
+                    //factory.setServerRootUrl("http://test.mobicash.co.za/south_africa/");
+                    factory.setServerRootUrl("http://test.mcash.rw/rwanda/");
                     //factory.setServerRootUrl("http://54.149.233.142:8080/mobicore");
                     //payment endpoint
                     PaymentWebService paymentWebService = factory.getPaymentWebService();
+                    AccessWebService accessWebservice =  factory.getAccessWebService();
                     
                     //agent credentials
                     String loginPassword =minput.pin;// "1122";//
@@ -176,26 +179,28 @@ public class AirtimeResource {
                     BigDecimal bd = new BigDecimal(minput.amount * Float.valueOf(minput.quantity));
                                         
                     
-                    System.out.println("amount"+bd);
+                    log.info("amount"+bd);
                     PaymentParameters params = new PaymentParameters();
                                         
-                    //params.setFromMemberPrincipalType("mobilePhone");//for client buying directly
-                    params.setFromMemberPrincipalType("USER");//for Agent buying on behalf of client
+                    params.setFromMemberPrincipalType("mobilePhone");//for client buying directly
+                    //params.setFromMemberPrincipalType("USER");//for Agent buying on behalf of client
                     params.setFromMember(phone);
+                    //params.setFromMember("isaact");
                     params.setAmount(bd);
                     params.setCredentials(loginPassword);
+                    //params.setCredentials("isaact123");
                     //params.setFromSystem(true);
-                    params.setToMemberPrincipalType("USER");
-                    params.setToMember(user);
+                    //params.setToMemberPrincipalType("USER");
+                    //params.setToMember(user);
                     
-                    //params.setToSystem(true);
+                    params.setToSystem(true);
                     //params.setCurrency("Uganda Shillings");
                     params.setDescription("Client FREEPAID credit - airtime");
-                    params.setTransferTypeId(new Long(36));//for agent buying on behalf of client
-                    //params.setTransferTypeId(new Long(46));//for client buying directly
+                    //params.setTransferTypeId(new Long(44));//for agent buying on behalf of client
+                    params.setTransferTypeId(new Long(41));//for client buying directly
                     
-                    System.out.println("got there--------payment params set------------------");
-                   
+                    log.info("got there--------payment params set------------------");
+                  
                                  
                 
                     // Perform the payment & check result
@@ -203,10 +208,10 @@ public class AirtimeResource {
                     switch (result.getStatus()) {
                         case PROCESSED:
                             String transactionNumber = result.getTransfer().getTransactionNumber();
-                            System.out.println("The payment was successful. The transaction number is " + transactionNumber);
+                            log.info("The payment was successful. The transaction number is " + transactionNumber);
                             //check Mobicah balance on FreePaid-to confirm if neccesary
-                            freepaidDoYourThing(userFreepaid,pass,amount);
-                            //reply.setSucc("Tax deduction:"+result.getStatus().toString());*/
+                            Pj.freepaidDoYourThing(userFreepaid,pass,amount);
+                            //reply.setSucc("Tax deduction:"+result.getStatus().toString());
                             PlaceOrderIn placeOrderIn = new PlaceOrderIn();
                             placeOrderIn.setUser(userFreepaid);
                             placeOrderIn.setExtra("");
@@ -238,74 +243,68 @@ public class AirtimeResource {
                             
                             }else{
                                 //reverse transaction
-//                                ChargebackResult chargeResult = paymentWebService.chargeback(result.getTransfer().getId());
-//                                
-//                                switch(chargeResult.getStatus()){
-//                                    case SUCCESS:
-//                                        reply.message ="Payment reversed";
-//                                    case INVALID_PARAMETERS:
-//                                        reply.message ="Given transfer id or amount are invalid";
-//                                    case TRANSFER_NOT_FOUND:
-//                                        reply.message ="transfer to chargedback/reverse was not found";
-//                                    case TRANSFER_CANNOT_BE_CHARGEDBACK:
-//                                        reply.message ="Maximum allowed time for chargeback/reverse passed";
-//                                    case TRANSFER_ALREADY_CHARGEDBACK:
-//                                        reply.message ="Transfer was already charged back/reversed";
-//                                    default:
-//                                        log.info("CHARGEBACK fail"+chargeResult.getStatus());
-//                                }
+                                ChargebackResult chargeResult = paymentWebService.chargeback(result.getTransfer().getId());
+                                
+                                switch(chargeResult.getStatus()){
+                                    case SUCCESS:
+                                        reply.message ="Payment reversed";
+                                    case INVALID_PARAMETERS:
+                                        reply.message ="Given transfer id or amount are invalid";
+                                    case TRANSFER_NOT_FOUND:
+                                        reply.message ="transfer to chargedback/reverse was not found";
+                                    case TRANSFER_CANNOT_BE_CHARGEDBACK:
+                                        reply.message ="Maximum allowed time for chargeback/reverse passed";
+                                    case TRANSFER_ALREADY_CHARGEDBACK:
+                                        reply.message ="Transfer was already charged back/reversed";
+                                    default:
+                                        log.info("CHARGEBACK fail"+chargeResult.getStatus());
+                                }
                                 log.error("+++++++ERROR "+placeOrderOut.getErrorcode()+" "+placeOrderOut.getMessage());
                                 reply.setError("+++++++ERROR "+placeOrderOut.getErrorcode()+" "+placeOrderOut.getMessage());
                             }
                             
-//                            break;
-//                        case PENDING_AUTHORIZATION:
-//                            System.out.println("The payment is awaiting authorization");
-//                            reply.setError(result.getStatus().toString());
-//                            break;
-//                        case INVALID_CHANNEL:
-//                            System.out.println("The given user cannot access this channel");
-//                            System.out.println(""+result.getStatus().toString());
-//                            reply.setError(result.getStatus().toString());
-//                            break;
-//                        case INVALID_CREDENTIALS:
-//                            System.out.println("You have entered an invalid PIN");
-//                            System.out.println(""+result.getStatus().toString());
-//                            reply.setError(result.getStatus().toString());
-//                            break;
-//                        case BLOCKED_CREDENTIALS:
-//                            System.out.println("Your PIN is blocked by exceeding trials");
-//                            reply.setError(result.getStatus().toString());
-//                            break;
-//                        case INVALID_PARAMETERS:
-//                            System.out.println("Please, check the given parameters");
-//                            System.out.println(""+result.getStatus().toString());
-//                            reply.setError(result.getStatus().toString());
-//                            break;
-//                        case NOT_ENOUGH_CREDITS:
-//                            System.out.println("You don't have enough funds for this payment");
-//                            reply.setError(result.getStatus().toString());
-//                            break;
-//                        case MAX_DAILY_AMOUNT_EXCEEDED:
-//                            System.out.println("You have already exceeded the maximum amount today");
-//                            reply.setError(result.getStatus().toString());
-//                            break;
-//                        default:
-//                            System.out.println("There was an error on the payment: " + result.getStatus());
-//                            reply.setError(result.getStatus().toString());
-//                    }
+                            break;
+                        case PENDING_AUTHORIZATION:
+                            log.info("The payment is awaiting authorization");
+                            reply.setError(result.getStatus().toString());
+                            break;
+                        case INVALID_CHANNEL:
+                            log.info("The given user cannot access this channel");
+                            log.info(""+result.getStatus().toString());
+                            reply.setError(result.getStatus().toString());
+                            break;
+                        case INVALID_CREDENTIALS:
+                            log.info("You have entered an invalid PIN");
+                            log.info(""+result.getStatus().toString());
+                            reply.setError(result.getStatus().toString());
+                            break;
+                        case BLOCKED_CREDENTIALS:
+                            log.info("Your PIN is blocked by exceeding trials");
+                            reply.setError(result.getStatus().toString());
+                            break;
+                        case INVALID_PARAMETERS:
+                            log.info("Please, check the given parameters");
+                            log.info(""+result.getStatus().toString());
+                            reply.setError(result.getStatus().toString());
+                            break;
+                        case NOT_ENOUGH_CREDITS:
+                            log.info("You don't have enough funds for this payment");
+                            reply.setError(result.getStatus().toString());
+                            break;
+                        case MAX_DAILY_AMOUNT_EXCEEDED:
+                            log.info("You have already exceeded the maximum amount today");
+                            reply.setError(result.getStatus().toString());
+                            break;
+                        default:
+                            log.info("There was an error on the payment: " + result.getStatus());
+                            reply.setError(result.getStatus().toString());
+                    }
                            
                 }else{
                     reply.setError("Send amount,phoneNumber and pin");
                     log.error("Send amount,phoneNumber and pin");
                 }
-           //System.out.println("------------"+fReceiveRequest1.toString());
-               /* log.info("FormFreeReceiveLookupResponse "+fReceiveResponse.getReceiverFirstName()+" :"+fReceiveResponse.getMgiTransactionSessionID());
-                //if(fReceiveResponse.getReferenceNumber())
-                
-                reply.formFreeReceiveLookupResponse = fReceiveResponse;
-                reply.setSucc("Please Confirm Transaction");*/
-                
+                         
           
                    
       }catch(JsonSyntaxException | SOAPFaultException e){
@@ -347,78 +346,79 @@ public class AirtimeResource {
                 minput = gson.fromJson(json, Minput.class);
                   if(minput.amount >= 1.0 && minput.phoneNumber.length()!=0 && minput.pin.length()!=0){
            
-//                    CyclosWebServicesClientFactory factory = new CyclosWebServicesClientFactory();
-//                    factory.setServerRootUrl("http://test.mobicash.co.za/south_africa/");
-//                    //factory.setServerRootUrl("http://test.mobicash.co.za/index.php/home/client");
-//                    
-//                    AccessWebService accessWebservice =  factory.getAccessWebService();
-//                    
+                    CyclosWebServicesClientFactory factory = new CyclosWebServicesClientFactory();
+                    //factory.setServerRootUrl("http://test.mobicash.co.za/south_africa/");
+                    factory.setServerRootUrl("http://test.mcash.rw/rwanda/");
+                    //factory.setServerRootUrl("http://test.mobicash.co.za/index.php/home/client");
+                    
+                    AccessWebService accessWebservice =  factory.getAccessWebService();
+                    
                     String loginPassword =minput.pin;// "1122";//
-                    String phone = checkPhoneNumberFormat(minput.phoneNumber);
-                    System.out.println("+++++++++++++++++++++++"+phone);
+                    String phone = Pj.checkPhoneNumberFormat(minput.phoneNumber);
+                    log.info("+++++++++++++++++++++++"+phone);
                     String user = "airtime";
                     float amount = minput.amount;
                     String otherNumber ="";
-                    String network =checkPhoneNetwork(phone);
+                    String network =Pj.checkPhoneNetwork(phone);
                     String otherNetwork="";
                     
                     if(minput.otherNumber.length()>0){
-                        otherNumber= checkPhoneNumberFormat(minput.otherNumber);
-                        otherNetwork = checkPhoneNetwork(otherNumber);
+                        otherNumber= Pj.checkPhoneNumberFormat(minput.otherNumber);
+                        otherNetwork = Pj.checkPhoneNetwork(otherNumber);
                         
                     }
                     
                     //check cyclos credentials to debit client
-//                    CheckCredentialsParameters ccp = new CheckCredentialsParameters();
-//                    ccp.setCredentials(loginPassword);
-//                    ccp.setPrincipalType("mobilePhone");
-//                    ccp.setPrincipal(phone);
-//                    
-//                    CredentialsStatus cs = accessWebservice.checkCredentials(ccp);
-//                    switch (cs) {
-//                        case VALID:
-//                            PaymentWebService paymentWebService = factory.getPaymentWebService();
-//                            //convert to big decimal construct payment parameters
-//                            BigDecimal bd = new BigDecimal(minput.amount);
-//                            //BigDecimal taxAmount = new BigDecimal(jInput.taxedAmount);
-//
-//
-//                            System.out.println("amount"+bd);
-//                            PaymentParameters params = new PaymentParameters();
-//
-//
-//                            //params.setFromMemberPrincipalType("mobilePhone");//for client paying tax directly
-//                            params.setFromMemberPrincipalType("mobilePhone");//for Agent paying on behalf of client
-//                            params.setFromMember(phone);
-//                            
-//                            params.setAmount(bd);
-//                            params.setCredentials(loginPassword);
-//                            //params.setFromSystem(true);
-//                            params.setToMemberPrincipalType("USER");
-//                            params.setToMember(user);
-//                            //params.setToSystem(true);
-//                            //params.setCurrency("Uganda Shillings");
-//                            params.setDescription("Client FREEPAID credit - airtime");
-//                            params.setTransferTypeId(new Long(36));//for agent paying on behalf of client
-//                            //params.setTransferTypeId(new Long(48));//for client paying directly
-//
-//                            System.out.println("got there------------------------------");
-//                            // Perform the payment
-//                            PaymentResult result = paymentWebService.doPayment(params);
-//                            switch (result.getStatus()) {
-//                                case PROCESSED:
-//                                    String transactionNumber = result.getTransfer().getTransactionNumber();
-//                                    System.out.println("The payment was successful. The transaction number is " + transactionNumber+" Transaction Status: "+result.getStatus());
-//                                    freepaidDoYourThing(userFreepaid,pass,amount);
-                                    //reply.setSucc("Tax deduction:"+result.getStatus().toString());*/
+                    CheckCredentialsParameters ccp = new CheckCredentialsParameters();
+                    ccp.setCredentials(loginPassword);
+                    ccp.setPrincipalType("mobilePhone");
+                    ccp.setPrincipal(phone);
+                    
+                    CredentialsStatus cs = accessWebservice.checkCredentials(ccp);
+                    switch (cs) {
+                        case VALID:
+                            PaymentWebService paymentWebService = factory.getPaymentWebService();
+                            //convert to big decimal construct payment parameters
+                            BigDecimal bd = new BigDecimal(minput.amount);
+                            //BigDecimal taxAmount = new BigDecimal(jInput.taxedAmount);
+
+
+                            log.info("amount"+bd);
+                            PaymentParameters params = new PaymentParameters();
+
+
+                            //params.setFromMemberPrincipalType("mobilePhone");//for client paying tax directly
+                            params.setFromMemberPrincipalType("mobilePhone");//for Agent paying on behalf of client
+                            params.setFromMember(phone);
+                            
+                            params.setAmount(bd);
+                            //params.setCredentials(loginPassword);
+                            //params.setFromSystem(true);
+                            //params.setToMemberPrincipalType("USER");
+                            //params.setToMember(user);
+                            params.setToSystem(true);
+                            //params.setCurrency("Uganda Shillings");
+                            params.setDescription("Client FREEPAID credit - airtime");
+                            params.setTransferTypeId(new Long(41));//for agent paying on behalf of client
+                            //params.setTransferTypeId(new Long(41));//for client paying directly
+
+                            log.info("got there------------------------------");
+                            // Perform the payment
+                            PaymentResult result = paymentWebService.doPayment(params);
+                            switch (result.getStatus()) {
+                                case PROCESSED:
+                                    String transactionNumber = result.getTransfer().getTransactionNumber();
+                                    log.info("The payment was successful. The transaction number is " + transactionNumber+" Transaction Status: "+result.getStatus());
+                                    Pj.freepaidDoYourThing(userFreepaid,pass,amount);
+                                    reply.setSucc("Tax deduction:"+result.getStatus().toString());
                                     PlaceOrderIn placeOrderIn = new PlaceOrderIn();
                                     placeOrderIn.setUser(userFreepaid);
                                     placeOrderIn.setPass(pass);
                                     //placeOrderIn.setExtra("27843762255");//phone number of client to recharge
                                     if(otherNumber.length()<=0){
-                                        placeOrderIn.setExtra(stripNumberFormat(phone));//phone number of other client to recharge
+                                        placeOrderIn.setExtra(Pj.stripNumberFormat(phone));//phone number of other client to recharge
                                     }else{
-                                        placeOrderIn.setExtra(stripNumberFormat(otherNumber));//phone number of client to recharge
+                                        placeOrderIn.setExtra(Pj.stripNumberFormat(otherNumber));//phone number of client to recharge
                                     }
                                     
                                     
@@ -470,111 +470,111 @@ public class AirtimeResource {
                                                 reply.setSucc("Success "+minput.amount+" sent to "+otherNumber+" Network: "+otherNetwork);
                                             }
                                         }else{
-//                                            //reverse transaction
-//                                            ChargebackResult chargeResult = paymentWebService.chargeback(result.getTransfer().getId());
-//
-//                                            switch(chargeResult.getStatus()){
-//                                                case SUCCESS:
-//                                                    reply.message ="Payment reversed";
-//                                                    break;
-//                                                case INVALID_PARAMETERS:
-//                                                    reply.message ="Given transfer id or amount are invalid";
-//                                                    break;
-//                                                case TRANSFER_NOT_FOUND:
-//                                                    reply.message ="Transfer to chargedback/reverse was not found";
-//                                                    break;
-//                                                case TRANSFER_CANNOT_BE_CHARGEDBACK:
-//                                                    reply.message ="Maximum allowed time for chargeback/reverse passed";
-//                                                    break;
-//                                                case TRANSFER_ALREADY_CHARGEDBACK:
-//                                                    reply.message ="transfer was already charged back/reversed";
-//                                                    break;
-//                                                default:
-//                                                    reply.message ="CHARGEBACK fail"+chargeResult.getStatus();
-//                                                    log.info("CHARGEBACK fail"+chargeResult.getStatus());
-//                                            }
-//
+                                            //reverse transaction
+                                            ChargebackResult chargeResult = paymentWebService.chargeback(result.getTransfer().getId());
+
+                                            switch(chargeResult.getStatus()){
+                                                case SUCCESS:
+                                                    reply.message ="Payment reversed";
+                                                    break;
+                                                case INVALID_PARAMETERS:
+                                                    reply.message ="Given transfer id or amount are invalid";
+                                                    break;
+                                                case TRANSFER_NOT_FOUND:
+                                                    reply.message ="Transfer to chargedback/reverse was not found";
+                                                    break;
+                                                case TRANSFER_CANNOT_BE_CHARGEDBACK:
+                                                    reply.message ="Maximum allowed time for chargeback/reverse passed";
+                                                    break;
+                                                case TRANSFER_ALREADY_CHARGEDBACK:
+                                                    reply.message ="transfer was already charged back/reversed";
+                                                    break;
+                                                default:
+                                                    reply.message ="CHARGEBACK fail"+chargeResult.getStatus();
+                                                    log.info("CHARGEBACK fail"+chargeResult.getStatus());
+                                            }
+
                                             log.error("Error "+queryOrderOut.getErrorcode()+" "+queryOrderOut.getMessage());
                                             reply.setError("Error: "+queryOrderOut.getErrorcode()+" "+queryOrderOut.getMessage());
                                         }
 //
                                     }else{
 //
-//                                        //reverse transaction
-//                                            ChargebackResult chargeResult = paymentWebService.chargeback(result.getTransfer().getId());
-//
-//                                            switch(chargeResult.getStatus()){
-//                                                case SUCCESS:
-//                                                    reply.message ="Payment reversed";
-//                                                    break;
-//                                                case INVALID_PARAMETERS:
-//                                                    reply.message ="Given transfer id or amount are invalid";
-//                                                    break;
-//                                                case TRANSFER_NOT_FOUND:
-//                                                    reply.message ="Transfer to chargedback/reverse was not found";
-//                                                    break;
-//                                                case TRANSFER_CANNOT_BE_CHARGEDBACK:
-//                                                    reply.message ="Maximum allowed time for chargeback/reverse passed";
-//                                                    break;
-//                                                case TRANSFER_ALREADY_CHARGEDBACK:
-//                                                    reply.message ="transfer was already charged back/reversed";
-//                                                    break;
-//                                                default:
-//                                                    log.info("CHARGEBACK fail"+chargeResult.getStatus());
-//                                            }
-//
+                                        //reverse transaction
+                                            ChargebackResult chargeResult = paymentWebService.chargeback(result.getTransfer().getId());
+
+                                            switch(chargeResult.getStatus()){
+                                                case SUCCESS:
+                                                    reply.message ="Payment reversed";
+                                                    break;
+                                                case INVALID_PARAMETERS:
+                                                    reply.message ="Given transfer id or amount are invalid";
+                                                    break;
+                                                case TRANSFER_NOT_FOUND:
+                                                    reply.message ="Transfer to chargedback/reverse was not found";
+                                                    break;
+                                                case TRANSFER_CANNOT_BE_CHARGEDBACK:
+                                                    reply.message ="Maximum allowed time for chargeback/reverse passed";
+                                                    break;
+                                                case TRANSFER_ALREADY_CHARGEDBACK:
+                                                    reply.message ="transfer was already charged back/reversed";
+                                                    break;
+                                                default:
+                                                    log.info("CHARGEBACK fail"+chargeResult.getStatus());
+                                            }
+
                                         log.error("+++++++ERROR "+placeOrderOut.getErrorcode()+" "+placeOrderOut.getMessage());
                                         reply.setError("+++++++ERROR "+placeOrderOut.getErrorcode()+" "+placeOrderOut.getMessage());
-//                                    }
-//                                    break;
-//                                case PENDING_AUTHORIZATION:
-//                                    System.out.println("The payment is awaiting authorization");
-//                                    reply.setError(result.getStatus().toString());
-//                                    break;
-//                                case INVALID_CHANNEL:
-//                                    System.out.println("The given user cannot access this channel");
-//                                    System.out.println(""+result.getStatus().toString());
-//                                    reply.setError(result.getStatus().toString());
-//                                    break;
-//                                case INVALID_CREDENTIALS:
-//                                    System.out.println("You have entered an invalid PIN");
-//                                    System.out.println(""+result.getStatus().toString());
-//                                    reply.setError(result.getStatus().toString());
-//                                    break;
-//                                case BLOCKED_CREDENTIALS:
-//                                    System.out.println("Your PIN is blocked by exceeding trials");
-//                                    reply.setError(result.getStatus().toString());
-//                                    break;
-//                                case INVALID_PARAMETERS:
-//                                    System.out.println("Please, check the given parameters");
-//                                    System.out.println(""+result.getStatus().toString());
-//                                    reply.setError(result.getStatus().toString());
-//                                    break;
-//                                case NOT_ENOUGH_CREDITS:
-//                                    System.out.println("You don't have enough funds for this payment");
-//                                    reply.setError(result.getStatus().toString());
-//                                    break;
-//                                case MAX_DAILY_AMOUNT_EXCEEDED:
-//                                    System.out.println("You have already exceeded the maximum amount today");
-//                                    reply.setError(result.getStatus().toString());
-//                                    break;
-//                                default:
-//                                    System.out.println("There was an error on the payment: " + result.getStatus());
-//                                    reply.setError("default"+result.getStatus().toString());
-//                            }
-//                            break;
-//                        case INVALID:
-//                            System.out.println("Wrong PIN: " + cs.toString());
-//                            reply.setError("Wrong PIN: " + cs.toString());
-//                            break;
-//                        case BLOCKED:
-//                            System.out.println("Blocked Account: " + cs.toString());
-//                            reply.setError("Wrong PIN: " + cs.toString());
-//                            break;
-//                        default:
-//                            System.out.println("error authentication: " + cs.toString());
-//                            reply.setError("authentication Error");
-//                                                       
+                                    }
+                                    break;
+                                case PENDING_AUTHORIZATION:
+                                    log.info("The payment is awaiting authorization");
+                                    reply.setError(result.getStatus().toString());
+                                    break;
+                                case INVALID_CHANNEL:
+                                    log.info("The given user cannot access this channel");
+                                    log.info(""+result.getStatus().toString());
+                                    reply.setError(result.getStatus().toString());
+                                    break;
+                                case INVALID_CREDENTIALS:
+                                    log.info("You have entered an invalid PIN");
+                                    log.info(""+result.getStatus().toString());
+                                    reply.setError(result.getStatus().toString());
+                                    break;
+                                case BLOCKED_CREDENTIALS:
+                                    log.info("Your PIN is blocked by exceeding trials");
+                                    reply.setError(result.getStatus().toString());
+                                    break;
+                                case INVALID_PARAMETERS:
+                                    log.info("Please, check the given parameters");
+                                    log.info(""+result.getStatus().toString());
+                                    reply.setError(result.getStatus().toString());
+                                    break;
+                                case NOT_ENOUGH_CREDITS:
+                                    log.info("You don't have enough funds for this payment");
+                                    reply.setError(result.getStatus().toString());
+                                    break;
+                                case MAX_DAILY_AMOUNT_EXCEEDED:
+                                    log.info("You have already exceeded the maximum amount today");
+                                    reply.setError(result.getStatus().toString());
+                                    break;
+                                default:
+                                    log.info("There was an error on the payment: " + result.getStatus());
+                                    reply.setError("default"+result.getStatus().toString());
+                            }
+                            break;
+                        case INVALID:
+                            log.info("Wrong PIN: " + cs.toString());
+                            reply.setError("Wrong PIN: " + cs.toString());
+                            break;
+                        case BLOCKED:
+                            log.info("Blocked Account: " + cs.toString());
+                            reply.setError("Wrong PIN: " + cs.toString());
+                            break;
+                        default:
+                            log.info("error authentication: " + cs.toString());
+                            reply.setError("authentication Error");
+                                                       
                         }
                            
                 }else{
@@ -592,194 +592,7 @@ public class AirtimeResource {
          return reply.toString();
   
 }
-    
-   //strip number of country code b4 sending to FreePaid 
-   public String stripNumberFormat(String number){
-
-        String country_code = "0";
-        String correctNumber ="";
-
-        correctNumber = country_code + number.substring(2); // e.g. 27767610645 ->  (country_code) 767610645
-        
-      return correctNumber;
-  }
-    
-    //check Network for which to buy airtime from phone number
-    public String checkPhoneNetwork(String number){
-    String network="";
-    String code = "";
-    
-    code = number.substring(2,4);
-    
-    if(code.equalsIgnoreCase("71")){
-        code = number.substring(2,5);
-        switch(code){
-                case "710":
-                     network ="p-mtn";
-                     break;
-                case "711":
-                     network ="p-vodacom";
-                     break;
-                case "712":
-                     network ="p-vodacom";
-                     break;
-                case "713":
-                     network ="p-vodacom";
-                     break;
-                case "714":
-                     network ="p-vodacom";
-                     break;
-                case "715":
-                     network ="p-vodacom";
-                     break;
-                case "716":
-                     network ="p-vodacom";
-                     break;
-                case "717":
-                     network ="p-mtn";
-                     break;
-                case "718":
-                     network ="p-mtn";
-                     break;
-                case "719":
-                     network ="p-mtn";
-                     break;
-                default:
-                    log.info("failed to pass network");
-                    network = "NOT_FOUND";
-            }
-        
-    
-    }else{
-
-            switch(code){
-                case "83":
-                     network ="p-mtn";
-                     break;
-                 case "84":
-                     network ="p-cellc";
-                     break;   
-                 case "82":
-                     network ="p-vodacom";
-                     break;
-                 case "72":
-                     network ="p-vodacom";
-                     break;
-                 case "73":
-                     network ="p-mtn";
-                     break;
-                 case "74":
-                     network ="p-cellc";
-                     break; 
-                 case "76":
-                     network ="p-vodacom";
-                     break; 
-                 case "78":
-                     network ="p-mtn";
-                     break; 
-                 case "79":
-                     network ="p-vodacom";
-                     break; 
-                 case "81":
-                     network ="p-heita";
-                     break; 
-                 default:
-                     log.info("failed to pass network");
-                     network = "NOT_FOUND";
-             }
    
-    }
-   
-   return network;
-  }
-    
-    //check if formt of number is 0 or +
-    public String checkPhoneNumberFormat(String number){
-    String sPhoneNumber = "27119785313";
-    String correctNumber = null;
-    
-    System.out.println("=================================="+number+"=====================================");
-
-
-      Pattern pattern = Pattern.compile("\\d{11}");
-      Matcher matcher = pattern.matcher(number);
-
-      if (matcher.matches()) {
-    	  System.out.println("Phone Number Valid");
-          correctNumber = number;
-          
-      }
-      else
-      {
-        String country_code = "27";
-    	System.out.println("Phone Number must be in the form 27xxxxxxxxx");
-        correctNumber = number.replaceAll("[^0-9]", "");
-          
-        if (number.substring(0, 1).compareTo("0") == 0/* && number.substring(1, 2).compareTo("0") != 0*/) {
-            correctNumber = country_code + number.substring(1); // e.g. 0172 12 34 567 -> + (country_code) 172 12 34 567
-        }
-          
-      }
-      System.out.println("=================================="+correctNumber+"=====================================");
-      return correctNumber;
-  }
-
-    
-        //check balance of MobiCash account at freepaid
-        public String freepaidDoYourThing(int user, String pass, float amount){
-        
-        try {
-            FetchBalanceIn fetchBalanceIn = new FetchBalanceIn();
-            fetchBalanceIn.setUser(user);
-            fetchBalanceIn.setPass(pass);
-            
-            
-            Airtimeplus aService1= new Airtimeplus();
-           
-            
-            try{
-                        log.info("================================================================");
-                        JAXBContext jaxbContext = JAXBContext.newInstance(FetchBalanceIn.class);
-                        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-
-                        // output pretty printed
-                        jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
-                        //jaxbMarshaller.marshal(customer, file);
-                        jaxbMarshaller.marshal(fetchBalanceIn, System.out);
-
-                      } catch (JAXBException e) {
-                          log.info("*****************"+e.toString());
-                      }
-            log.info("================================================================");
-            
-            FetchBalanceOut fetchBalanceOut=aService1.getAirtimeplusPort().fetchBalance(fetchBalanceIn);
-            log.info("DDDDDDDDDDDDDD"+fetchBalanceOut.getBalance());
-            reply.setSucc("DDDDDDDDDDDDDD"+fetchBalanceOut.getBalance());
-            
-                try{
-                        //File file = new File("C:\\file.xml");
-                        JAXBContext jaxbContext = JAXBContext.newInstance(FetchBalanceOut.class);
-                        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-
-                        // output pretty printed
-                        jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
-                        //jaxbMarshaller.marshal(customer, file);
-                        jaxbMarshaller.marshal(fetchBalanceOut, System.out);
-
-                      } catch (JAXBException e) {
-                          log.info("*******+++++++ERROR "+e.toString());
-                      }
-            
-            
-        } catch (Exception ex) {
-            log.error(ex.toString());
-            reply.setError(ex.toString());
-        }
-        return reply.toString();
-    }
-
 
     /**
      * Retrieves representation of an instance of com.mobicashfreepaid.AirtimeResource
