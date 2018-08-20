@@ -17,7 +17,10 @@ import java.math.BigDecimal;
 import java.util.List;
 import za.co.freepaid.dev.ws.airtimeplus.FetchOrderOut;
 import za.co.freepaid.dev.ws.airtimeplus.FetchProductsOut;
+import za.co.freepaid.dev.ws.airtimeplus.Product;
 import za.co.freepaid.dev.ws.airtimeplus.Products;
+import za.co.freepaid.dev.ws.airtimeplus.Voucher;
+import za.co.freepaid.dev.ws.airtimeplus.Vouchers;
 
 
 /**
@@ -38,7 +41,18 @@ public class Mreply {
     public FetchProductsOut fetchProductsOut;
     public FetchOrderOut fetchOrderOut;
     public List<FetchProductsOut> fetchProductsOutList;
-    public Products products;
+    public Products prdcts;
+    public List<Product> products;
+    public Product pdct;
+    public Vouchers vouchs;
+    public List<Voucher> vouchers;
+    public Voucher voucher;
+    public List<Object> any;
+    public String str;
+    public String arrayType;
+    public String otherAttributes;
+    public BigDecimal totalCost;
+    
     public List<Products> productsList;
    
 

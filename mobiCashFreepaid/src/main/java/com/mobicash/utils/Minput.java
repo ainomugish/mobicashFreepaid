@@ -25,6 +25,7 @@ public class Minput {
     public String network;
     public String quantity;
     public String otherNumber;
+    public String isAgent;
     
 
     
